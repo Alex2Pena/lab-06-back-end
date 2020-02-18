@@ -26,6 +26,7 @@ app.get('/location', (request, response) => {
     response.send(location);
   }
   catch (err){
+    response.status(500).send(err);
     console.log(request);
     console.log(err);
   }
@@ -58,7 +59,8 @@ function Weather(obj){
   this.time = new Date(obj.time * 1000).toString().slice(0,15);
 }
 
+
 // turn on the server
 app.listen(PORT, () => {
   console.log(`listening to ${PORT}`);
-}); 
+});
