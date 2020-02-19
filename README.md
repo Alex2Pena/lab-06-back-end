@@ -26,6 +26,18 @@ Estimate of time needed to complete: 3 hrs
 
 Start time: 09:30:00
 
-Finish time:
+Finish time: 14:00:00
 
-Actual time needed to complete:
+Actual time needed to complete: 04:30:00
+
+___________________________________________________________________________________________
+
+Number and name of feature: Lab: 07 - .map
+
+Estimate of time needed to complete: 5 hrs
+
+Start time: 10:00:00
+
+Finish time: 
+
+Actual time needed to complete: s
