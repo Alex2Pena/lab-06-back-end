@@ -16,6 +16,7 @@ app.use(cors());
 // get the port from the env
 const PORT = process.env.PORT || 3001;
 
+// install super agent in terminal (npm i -S superagent)
 const superagent = require('superagent');
 
 //Read JSON file data
@@ -34,12 +35,6 @@ app.get('/location', (request, response) => {
     console.log(err);
   }
 });
-function City(city, obj){
-  this.search_query = city;
-  this.formatted_query = obj.display_name;
-  this.latitude = obj.lat;
-  this.longitude = obj.lon;
-}
 
 //Read JSON file data
 
@@ -51,23 +46,50 @@ app.get('/weather', (request, response) => {
   superagent.get(url)
     .then(results => {
       let wData = results.body.daily.data;
-      let dailyData = wData.daily.data;
-      let forecast = dailyData.map(day => {
+      wData.map(day => {
         let newDay = new Weather(day);
         weather.push(newDay);
       });
+      response.status(200).send(weather);
     });
-  response.send(weather);
 });
 
-function Weather(obj){
-  this.forecast = obj.summary;
-  this.time = new Date(obj.time * 1000).toString().slice(0,15);
+app.get('/trails', (request, response) => {
+  let {latitude,longitude} = request.query;
+  let url = `https://www.hikingproject.com/data/get-trails?lat=${latitude}&lon=${longitude}&maxDistance=10&key=${process.env.TRAILS_API_KEY}`;
+
+  superagent.get(url)
+    .then(results => {
+      const dataObj = results.body.trails.map(trail => new Trail(trail));
+      response.status(200).send(dataObj);
+    });
+});
+function City(city, obj){
+  this.search_query = city;
+  this.formatted_query = obj.display_name;
+  this.latitude = obj.lat;
+  this.longitude = obj.lon;
 }
 
+function Weather(obj){
+  this.time = new Date(obj.time * 1000).toString().slice(0,15);
+  this.forecast = obj.summary;
+}
+
+function Trail(obj){
+  this.name = obj.name;
+  this.location = obj.location;
+  this.length = obj.length;
+  this.stars = obj.stars;
+  this.star_votes = obj.starVotes;
+  this.summary = obj.summary;
+  this.trail_url = obj.url;
+  this.conditions = obj.conditionStatus;
+  this.condition_date = obj.conditionDate.slice(0,10);
+  this.condition_time = obj.conditionDate.slice(11,19);
+}
 
 // turn on the server
 app.listen(PORT, () => {
   console.log(`listening to ${PORT}`);
 });
-

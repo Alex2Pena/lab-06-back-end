@@ -38,6 +38,18 @@ Estimate of time needed to complete: 5 hrs
 
 Start time: 10:00:00
 
+Finish time: 10:00:00 following  day
+
+Actual time needed to complete: 6 hrs
+
+____________________________________________________________________________________________
+
+Number and name of feature: Lab: Lab: 08 - Persistence with a SQL Database
+
+Estimate of time needed to complete: 5 hrs
+
+Start time: 10:00:00
+
 Finish time: 
 
-Actual time needed to complete: s
+Actual time needed to complete: 
