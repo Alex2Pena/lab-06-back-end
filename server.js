@@ -1,11 +1,11 @@
 'use strict';
 
+// lets us go into the .env and get the variables
+require('dotenv').config();
 // brings in the expresss library which is our server
 const express = require('express');
 // instantiates the express library in app
 const app = express();
-// lets us go into the .env and get the variables
-require('dotenv').config();
 // requires that postgress is running
 const pg = require('pg');
 // the policeman - lets the server know that it is OK to give information to the front end
@@ -145,8 +145,6 @@ client.connect()
       console.log(`listening on ${PORT}`);
     })
   );
-
-
 
 
 
