@@ -2,39 +2,91 @@
 
 // brings in the expresss library which is our server
 const express = require('express');
-
 // instantiates the express library in app
 const app = express();
-
 // lets us go into the .env and get the variables
 require('dotenv').config();
-
+// requires that postgress is running
+const pg = require('pg');
 // the policeman - lets the server know that it is OK to give information to the front end
 const cors = require('cors');
 app.use(cors());
-
 // get the port from the env
 const PORT = process.env.PORT || 3001;
-
 // install super agent in terminal (npm i -S superagent)
 const superagent = require('superagent');
+//using the pg library to assign an instance of a client to the variable client.
+const client = new pg.Client(process.env.DATABASE_URL);
+//Turns on the DataBase and reports an error if found
+client.on('error', err => console.error(err));
 
-//Read JSON file data
-app.get('/location', (request, response) => {
-  try{
-    let city = request.query.city;
-    let url = `https://us1.locationiq.com/v1/search.php?key=${process.env.GEOCODE_API_KEY}&q=${city}&format=json`;
-    superagent.get(url)
-      .then(results => {
-        let geoData = results.body;
-        let location = new City(city, geoData[0]);
-        response.status(200).send(location);
-      });
-  }
-  catch (err){
-    console.log(err);
-  }
+
+
+//need to convert to city
+app.get('/add', (request, response) => {
+  //takes in input from front end and stores it into the table in the DB.
+  let city = request.query.city;
+  console.log(city);
+  
+  let SQL = 'INSERT INTO people (city) VALUES ($1)';
+  let safeValues = [city];
+  
+  client.query(SQL, safeValues);
 });
+
+app.get('/display', (request, response) => {
+  let SQL = 'SELECT * FROM people';
+  client.query(SQL)
+    .then(results => {
+      response.json(results.rows);
+    });
+});
+
+client.connect()
+  .then(
+    app.listen(PORT, () => console.log(`listening on ${PORT}`))
+  );
+
+// app.listen(PORT, () => {
+//   console.log(`listening to ${PORT}`);
+// });
+
+//look in my DB to see if location exists
+app.get('/location', (request, response) => {
+
+  let city = request.query.city;
+  let sql = 'SELECT * FROM locations WHERE search_query=$1;';
+  let safeValues = [city];
+
+  client.query(sql, safeValues)
+    .then(results => {
+      if(results.rows.length > 0){
+        console.log('found city in DB')
+        //if it does, send that file to the front end
+        //it will  make my life easier if the DB data is the same  format as what the front  end is  expecting.
+        //aka- my table should have the same keys as my constructor
+        response.send(results.rows[0]);
+      } else {
+        console.log('did not find data in DB')
+        //if it doesnt the use super agent  to goto API to get data
+        //save it to DB
+        //send it to Front end
+        let city = request.query.city;
+        let url = `https://us1.locationiq.com/v1/search.php?key=${process.env.GEOCODE_API_KEY}&q=${city}&format=json`;
+    
+        superagent.get(url)
+          .then(results => {
+            let geoData = results.body;
+            let location = new City(city, geoData[0]);
+            response.status(200).send(location);
+          });
+      }
+    });
+
+      }
+    });
+
+
 
 //Read JSON file data
 
@@ -64,6 +116,8 @@ app.get('/trails', (request, response) => {
       response.status(200).send(dataObj);
     });
 });
+
+
 function City(city, obj){
   this.search_query = city;
   this.formatted_query = obj.display_name;
@@ -90,6 +144,3 @@ function Trail(obj){
 }
 
 // turn on the server
-app.listen(PORT, () => {
-  console.log(`listening to ${PORT}`);
-});
