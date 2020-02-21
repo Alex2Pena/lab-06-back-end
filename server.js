@@ -20,36 +20,6 @@ const client = new pg.Client(process.env.DATABASE_URL);
 //Turns on the DataBase and reports an error if found
 client.on('error', err => console.error(err));
 
-
-//need to convert to city
-app.get('/add', (request, response) => {
-  //takes in input from front end and stores it into the table in the DB.
-  let city = request.query.city;
-  console.log(city);
-
-  let SQL = 'INSERT INTO people (city) VALUES ($1)';
-  let safeValues = [city];
-
-  client.query(SQL, safeValues);
-});
-
-app.get('/display', (request, response) => {
-  let SQL = 'SELECT * FROM people';
-  client.query(SQL)
-    .then(results => {
-      response.json(results.rows);
-    });
-});
-
-// client.connect()
-//   .then(
-//     app.listen(PORT, () => console.log(`listening on ${PORT}`))
-//   );
-
-// app.listen(PORT, () => {
-//   console.log(`listening to ${PORT}`);
-// });
-
 app.get('/location', (request, response) => {
 
   let city = request.query.city;
@@ -88,9 +58,6 @@ app.get('/location', (request, response) => {
     });
 }
 );
-
-
-//Read JSON file data
 
 app.get('/weather', (request, response) => {
   let weather = [];
