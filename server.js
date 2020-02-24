@@ -19,14 +19,14 @@ const superagent = require('superagent');
 const client = new pg.Client(process.env.DATABASE_URL);
 //Turns on the DataBase and reports an error if found
 client.on('error', err => console.error(err));
-
+//connects to the frontend @ /location
 app.get('/location', (request, response) => {
-
+// request.query is  what is  what is typed in for the search.
   let city = request.query.city;
-  //look in my DB to see if location exists
+  //look in my DB to see if the request query location exists
   let sql = 'SELECT * FROM locations WHERE search_query=$1;';
+  //takes in
   let safeValues = [city];
-
   client.query(sql, safeValues)
     .then(results => {
       if(results.rows.length > 0){
@@ -41,17 +41,13 @@ app.get('/location', (request, response) => {
         //save it to DB
         //send it to Front end
         let url = `https://us1.locationiq.com/v1/search.php?key=${process.env.GEOCODE_API_KEY}&q=${city}&format=json`;
-
         superagent.get(url)
           .then(results => {
             let geoData = results.body;
             let location = new City(city, geoData[0]);
-
-            let sql = 'INSERT INTO locations (search_query, formatted_query, latitude, longitude) VALUES ($1, $2, $3, $4);';
+            let sql = 'INSERT INTO locations (search_query, formatted_query, latitude, longitude) VALUES ($1, $2, $3, $4)';
             let safeValues = [location.search_query, location.formatted_query, location.latitude, location.longitude];
-
             client.query(sql, safeValues);
-
             response.status(200).send(location);
           });
       }
@@ -75,7 +71,10 @@ app.get('/weather', (request, response) => {
     });
 });
 app.get('/trails', (request, response) => {
-  let {latitude,longitude} = request.query;
+  let {
+    latitude,
+    longitude, } = request.query;
+
   let url = `https://www.hikingproject.com/data/get-trails?lat=${latitude}&lon=${longitude}&maxDistance=10&key=${process.env.TRAILS_API_KEY}`;
 
   superagent.get(url)
@@ -84,6 +83,28 @@ app.get('/trails', (request, response) => {
       response.status(200).send(dataObj);
     });
 });
+
+//build movies here:
+app.get('/movies', (request, response) => {
+  let location = request.query.search_query;
+  console.log(request.search_query);
+  let url = `https://api.themoviedb.org/3/search/movie?api_key=${process.env.THEMOVIEDB_API}&language=en-US&query=${location}&page=1&include_adult=false`;
+
+  superagent.get(url)
+    .then (results => {
+      console.log('movie superagent results', results.body.results);
+      let movieData = results.body.results;
+      let movieResults = movieData.map((data) => (new Movie(data)));
+      // console.log(movieResults);
+      response.status(200).send(movieResults);
+    })
+    .catch(err => {
+      console.error(err);
+      response.status(500).send(err);
+    });
+});
+
+
 function City(city, obj){
   this.search_query = city;
   this.formatted_query = obj.display_name;
@@ -106,6 +127,18 @@ function Trail(obj){
   this.condition_date = obj.conditionDate.slice(0,10);
   this.condition_time = obj.conditionDate.slice(11,19);
 }
+//movie function
+function Movie(data){
+  this.title = data.title;
+  this.overview = data.overview;
+  this.average_votes = data.vote_average;
+  this.total_votes = data.vote_count;
+  this.image_url = `https://image.tmdb.org/t/p/w300_and_h450_bestv2${data.backdrop_path}`;
+  // this.image_url = `https://image.tmdb.org/t/p/${data.backdrop_path}`
+  this.popularity = data.popularity;
+  this.released_on = data.release_date;
+}
+
 client.connect()
   .then(() =>
     app.listen(PORT, () => {

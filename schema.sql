@@ -8,6 +8,6 @@ CREATE TABLE locations (
     longitude NUMERIC(10,7)
 );
 
-INSERT INTO locations (search_query,formatted_query,latitude,longitude) VALUES ('','',000.0000000,000.0000000);
+INSERT INTO locations (search_query, formatted_query, latitude, longitude) VALUES ('', '', 00.0000000, 00.0000000);
 
 SELECT * FROM locations;
