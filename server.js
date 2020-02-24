@@ -70,6 +70,7 @@ app.get('/weather', (request, response) => {
       response.status(200).send(weather);
     });
 });
+
 app.get('/trails', (request, response) => {
   let {
     latitude,
@@ -104,17 +105,34 @@ app.get('/movies', (request, response) => {
     });
 });
 
+app.get('/yelp',(request, response) => {
+  let city = request.query.search_query;
+  let url = `https://api.yelp.com/v3/businesses/search?location=${city}`;
+  superagent.get(url)
+    .set('Authorization', `Bearer ${process.env.YELP_API_KEY}`)
+    .then(results => {
+      let newYelp = results.body.businesses.map(biz => {
+        return new Yelp(biz);
+      });
+      response.status(200).send(newYelp);
+    });
+});
 
+//Constructor funtions for different columns
+
+//city  constructor
 function City(city, obj){
   this.search_query = city;
   this.formatted_query = obj.display_name;
   this.latitude = obj.lat;
   this.longitude = obj.lon;
 }
+//weather constructor
 function Weather(obj){
   this.time = new Date(obj.time * 1000).toString().slice(0,15);
   this.forecast = obj.summary;
 }
+//trail constructor
 function Trail(obj){
   this.name = obj.name;
   this.location = obj.location;
@@ -127,7 +145,7 @@ function Trail(obj){
   this.condition_date = obj.conditionDate.slice(0,10);
   this.condition_time = obj.conditionDate.slice(11,19);
 }
-//movie function
+//movie constructor
 function Movie(data){
   this.title = data.title;
   this.overview = data.overview;
@@ -138,7 +156,15 @@ function Movie(data){
   this.popularity = data.popularity;
   this.released_on = data.release_date;
 }
-
+//Yelp constructor
+function Yelp(obj){
+  this.name = obj.name;
+  this.image_url = obj.image_url;
+  this.price = obj.price;
+  this.rating = obj.rating;
+  this.url = obj.url;
+}
+// turn on the server
 client.connect()
   .then(() =>
     app.listen(PORT, () => {
@@ -148,4 +174,3 @@ client.connect()
 
 
 
-// turn on the server
